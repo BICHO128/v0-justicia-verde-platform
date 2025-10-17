@@ -1,6 +1,5 @@
 import mysql from "mysql2/promise"
 
-// Database connection configuration
 const dbConfig = {
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "root",
@@ -10,22 +9,40 @@ const dbConfig = {
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
 }
 
-// Create connection pool
-const pool = mysql.createPool(dbConfig)
+let pool: mysql.Pool | null = null
 
-// Test connection
-export async function testConnection() {
+export function getPool(): mysql.Pool {
+  if (!pool) {
+    pool = mysql.createPool(dbConfig)
+  }
+  return pool
+}
+
+export async function testConnection(): Promise<boolean> {
   try {
-    const connection = await pool.getConnection()
-    console.log("[v0] Database connected successfully")
+    const connection = await getPool().getConnection()
+    await connection.ping()
+    console.log("Database connected successfully")
     connection.release()
     return true
   } catch (error) {
-    console.error("[v0] Database connection failed:", error)
+    console.error("Database connection failed:", error)
     return false
   }
 }
 
-export default pool
+export async function executeQuery<T>(query: string, params?: any[]): Promise<T> {
+  try {
+    const [rows] = await getPool().execute(query, params)
+    return rows as T
+  } catch (error) {
+    console.error("Query execution error:", error)
+    throw error
+  }
+}
+
+export default getPool()

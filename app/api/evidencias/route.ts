@@ -10,10 +10,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "ID de denuncia requerido" }, { status: 400 })
     }
 
-    const evidencias = await getEvidencias(Number.parseInt(denunciaId))
+    const id = Number.parseInt(denunciaId)
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID de denuncia inválido" }, { status: 400 })
+    }
+
+    const evidencias = await getEvidencias(id)
     return NextResponse.json({ evidencias }, { status: 200 })
   } catch (error) {
-    console.error("[v0] Get evidencias error:", error)
+    console.error("Get evidencias error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
@@ -23,15 +28,19 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { id_denuncia, tipo, url_archivo } = body
 
-    // Validate required fields
     if (!id_denuncia || !tipo || !url_archivo) {
       return NextResponse.json({ error: "Campos requeridos faltantes" }, { status: 400 })
     }
 
-    // Validate tipo
     const validTipos = ["imagen", "video", "documento"]
     if (!validTipos.includes(tipo)) {
       return NextResponse.json({ error: "Tipo de evidencia inválido" }, { status: 400 })
+    }
+
+    try {
+      new URL(url_archivo)
+    } catch {
+      return NextResponse.json({ error: "URL de archivo inválida" }, { status: 400 })
     }
 
     const success = await addEvidencia(id_denuncia, tipo, url_archivo)
@@ -42,7 +51,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Evidencia agregada exitosamente" }, { status: 201 })
   } catch (error) {
-    console.error("[v0] Add evidencia error:", error)
+    console.error("Add evidencia error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

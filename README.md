@@ -9,25 +9,23 @@ Plataforma ciudadana para denunciar, visibilizar y combatir delitos ambientales 
 - **Denuncias Oficiales y Anónimas**: Opción de reportar con o sin identificación
 - **Categorización**: Clasificación por tipo de delito ambiental (deforestación, contaminación, caza ilegal, etc.)
 - **Seguimiento en Tiempo Real**: Visualización del estado de las denuncias
-- **Notificaciones por Email**: Alertas automáticas cuando cambia el estado de una denuncia
 - **Historial Completo**: Acceso a todas las denuncias propias y su progreso
 
 ### Para Administradores
 - **Panel de Control**: Dashboard con estadísticas y métricas clave
 - **Gestión de Denuncias**: Revisión y actualización de estados
 - **Sistema de Seguimiento**: Comentarios y actualizaciones para cada caso
-- **Notificaciones**: Alertas de nuevas denuncias pendientes
 - **Filtros Avanzados**: Organización por estado, categoría y fecha
 - **Vista Tabular**: Gestión eficiente de múltiples denuncias
 
 ## Tecnologías Utilizadas
 
 - **Frontend**: Next.js 15, React 19, TypeScript
-- **Estilos**: Tailwind CSS v4, shadcn/ui
-- **Backend**: Next.js API Routes, Node.js
+- **Estilos**: CSS Modules, Tailwind CSS v4
+- **UI Components**: Radix UI primitives
+- **Backend**: Next.js API Routes
 - **Base de Datos**: MySQL con mysql2
 - **Autenticación**: bcryptjs para hash de contraseñas
-- **Notificaciones**: Nodemailer para emails
 
 ## Estructura de la Base de Datos
 
@@ -37,6 +35,33 @@ Plataforma ciudadana para denunciar, visibilizar y combatir delitos ambientales 
 - **evidencias**: Archivos adjuntos (imágenes, videos, documentos)
 - **seguimientos**: Comentarios y actualizaciones administrativas
 - **denuncia_categoria**: Relación muchos a muchos entre denuncias y categorías
+
+## API Endpoints
+
+### Autenticación
+- `POST /api/auth/register` - Registro de nuevos usuarios
+- `POST /api/auth/login` - Inicio de sesión
+- `GET /api/auth/me` - Obtener usuario actual
+
+### Denuncias
+- `GET /api/denuncias` - Listar denuncias (con filtros opcionales)
+- `POST /api/denuncias` - Crear nueva denuncia
+- `GET /api/denuncias/[id]` - Obtener denuncia específica
+- `PUT /api/denuncias/[id]` - Actualizar estado de denuncia
+
+### Categorías
+- `GET /api/categorias` - Listar todas las categorías
+
+### Evidencias
+- `GET /api/evidencias?denunciaId=[id]` - Obtener evidencias de una denuncia
+- `POST /api/evidencias` - Agregar evidencia a una denuncia
+
+### Seguimientos
+- `GET /api/seguimientos?denunciaId=[id]` - Obtener seguimientos de una denuncia
+- `POST /api/seguimientos` - Agregar comentario de seguimiento
+
+### Estadísticas
+- `GET /api/stats` - Obtener estadísticas del dashboard
 
 ## Configuración
 
@@ -51,12 +76,6 @@ DB_USER=root
 DB_PASSWORD=your_password_here
 DB_NAME=justicia_verde
 DB_PORT=3306
-
-# Email Configuration (for notifications)
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_password
 
 # Application
 NEXT_PUBLIC_APP_URL=http://localhost:3000
@@ -87,8 +106,7 @@ npm run dev
 2. Crear una denuncia (oficial o anónima)
 3. Seleccionar categorías relevantes
 4. Agregar descripción y ubicación
-5. Recibir notificaciones por email sobre actualizaciones
-6. Ver seguimiento y comentarios administrativos
+5. Ver seguimiento y comentarios administrativos
 
 ### Administrador
 1. Acceder al panel de administración
@@ -105,13 +123,6 @@ npm run dev
 - **Rechazada**: No procede según criterios
 - **Resuelta**: Caso completado exitosamente
 
-## Notificaciones
-
-El sistema envía notificaciones automáticas por email cuando:
-- Se actualiza el estado de una denuncia (para usuarios)
-- Se crea una nueva denuncia (para administradores)
-- Se agregan comentarios de seguimiento
-
 ## Seguridad
 
 - Contraseñas hasheadas con bcrypt (10 rounds)
@@ -119,6 +130,40 @@ El sistema envía notificaciones automáticas por email cuando:
 - Autenticación basada en sesión con localStorage
 - Rutas protegidas con verificación de roles
 - Validación de datos en frontend y backend
+
+## Estructura del Proyecto
+
+\`\`\`
+justicia-verde/
+├── app/                      # Next.js App Router
+│   ├── api/                  # API Routes
+│   │   ├── auth/            # Autenticación
+│   │   ├── denuncias/       # Gestión de denuncias
+│   │   ├── categorias/      # Categorías
+│   │   ├── evidencias/      # Evidencias
+│   │   ├── seguimientos/    # Seguimientos
+│   │   └── stats/           # Estadísticas
+│   ├── admin/               # Panel administrativo
+│   ├── denuncias/           # Gestión de denuncias
+│   ├── login/               # Página de login
+│   ├── register/            # Página de registro
+│   └── page.tsx             # Página principal
+├── components/              # Componentes React
+│   ├── ui/                  # Componentes UI base
+│   ├── navbar.tsx           # Barra de navegación
+│   ├── protected-route.tsx  # HOC para rutas protegidas
+│   └── seguimientos-section.tsx
+├── contexts/                # React Contexts
+│   └── auth-context.tsx     # Contexto de autenticación
+├── lib/                     # Utilidades y lógica de negocio
+│   ├── auth.ts              # Funciones de autenticación
+│   ├── db.ts                # Configuración de base de datos
+│   ├── denuncias.ts         # Lógica de denuncias
+│   └── types.ts             # Tipos TypeScript
+└── scripts/                 # Scripts SQL
+    ├── 01-create-database.sql
+    └── 02-seed-data.sql
+\`\`\`
 
 ## Contribuir
 

@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Leaf, User, LogOut, Shield } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { NotificationBadge } from "@/components/notification-badge"
 
 export function Navbar() {
   const { user, logout, isAuthenticated, isAdmin } = useAuth()
@@ -46,11 +45,6 @@ export function Navbar() {
                   </Button>
                 </Link>
               )}
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/denuncias">
-                  <NotificationBadge />
-                </Link>
-              </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="icon">

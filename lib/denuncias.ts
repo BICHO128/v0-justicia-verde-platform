@@ -1,10 +1,12 @@
-import pool from "./db"
+import { getPool, executeQuery } from "./db"
 import type { Denuncia, Categoria, Evidencia } from "./types"
+
+const pool = getPool()
 
 // Get all categories
 export async function getCategorias(): Promise<Categoria[]> {
   try {
-    const [rows] = await pool.query("SELECT * FROM categorias ORDER BY nombre_categoria")
+    const [rows] = await executeQuery("SELECT * FROM categorias ORDER BY nombre_categoria")
     return rows as Categoria[]
   } catch (error) {
     console.error("[v0] Error fetching categories:", error)
@@ -77,13 +79,13 @@ export async function getDenuncias(userId?: number, estado?: string): Promise<De
 
     query += " ORDER BY d.fecha_creacion DESC"
 
-    const [rows] = await pool.query(query, params)
+    const [rows] = await executeQuery(query, params)
     const denuncias = rows as any[]
 
     // Get categories for each denuncia
     const denunciasWithCategories = await Promise.all(
       denuncias.map(async (denuncia) => {
-        const [catRows] = await pool.query(
+        const [catRows] = await executeQuery(
           `SELECT c.* FROM categorias c
            INNER JOIN denuncia_categoria dc ON c.id_categoria = dc.id_categoria
            WHERE dc.id_denuncia = ?`,
@@ -114,7 +116,7 @@ export async function getDenuncias(userId?: number, estado?: string): Promise<De
 // Get single denuncia by ID
 export async function getDenunciaById(id: number): Promise<Denuncia | null> {
   try {
-    const [rows] = await pool.query(
+    const [rows] = await executeQuery(
       `SELECT d.*, u.nombre_completo, u.correo, u.tipo_usuario
        FROM denuncias d
        LEFT JOIN usuarios u ON d.id_usuario = u.id_usuario
@@ -128,7 +130,7 @@ export async function getDenunciaById(id: number): Promise<Denuncia | null> {
     const denuncia = denuncias[0]
 
     // Get categories
-    const [catRows] = await pool.query(
+    const [catRows] = await executeQuery(
       `SELECT c.* FROM categorias c
        INNER JOIN denuncia_categoria dc ON c.id_categoria = dc.id_categoria
        WHERE dc.id_denuncia = ?`,
@@ -159,7 +161,7 @@ export async function updateDenunciaEstado(
   estado: "pendiente" | "en revisión" | "aceptada" | "rechazada" | "resuelta",
 ): Promise<boolean> {
   try {
-    await pool.query("UPDATE denuncias SET estado = ? WHERE id_denuncia = ?", [estado, id])
+    await executeQuery("UPDATE denuncias SET estado = ? WHERE id_denuncia = ?", [estado, id])
     return true
   } catch (error) {
     console.error("[v0] Error updating denuncia status:", error)
@@ -174,7 +176,7 @@ export async function addEvidencia(
   urlArchivo: string,
 ): Promise<boolean> {
   try {
-    await pool.query("INSERT INTO evidencias (id_denuncia, tipo, url_archivo) VALUES (?, ?, ?)", [
+    await executeQuery("INSERT INTO evidencias (id_denuncia, tipo, url_archivo) VALUES (?, ?, ?)", [
       denunciaId,
       tipo,
       urlArchivo,
@@ -189,7 +191,7 @@ export async function addEvidencia(
 // Get evidence for a denuncia
 export async function getEvidencias(denunciaId: number): Promise<Evidencia[]> {
   try {
-    const [rows] = await pool.query("SELECT * FROM evidencias WHERE id_denuncia = ? ORDER BY fecha_subida DESC", [
+    const [rows] = await executeQuery("SELECT * FROM evidencias WHERE id_denuncia = ? ORDER BY fecha_subida DESC", [
       denunciaId,
     ])
     return rows as Evidencia[]
@@ -202,7 +204,7 @@ export async function getEvidencias(denunciaId: number): Promise<Evidencia[]> {
 // Add seguimiento (tracking comment)
 export async function addSeguimiento(denunciaId: number, userId: number, comentario: string): Promise<boolean> {
   try {
-    await pool.query("INSERT INTO seguimientos (id_denuncia, id_usuario, comentario) VALUES (?, ?, ?)", [
+    await executeQuery("INSERT INTO seguimientos (id_denuncia, id_usuario, comentario) VALUES (?, ?, ?)", [
       denunciaId,
       userId,
       comentario,
@@ -217,7 +219,7 @@ export async function addSeguimiento(denunciaId: number, userId: number, comenta
 // Get seguimientos for a denuncia
 export async function getSeguimientos(denunciaId: number): Promise<any[]> {
   try {
-    const [rows] = await pool.query(
+    const [rows] = await executeQuery(
       `SELECT s.*, u.nombre_completo, u.tipo_usuario
        FROM seguimientos s
        INNER JOIN usuarios u ON s.id_usuario = u.id_usuario
@@ -242,7 +244,7 @@ export async function getDashboardStats(): Promise<{
   resuelta: number
 }> {
   try {
-    const [rows] = await pool.query(`
+    const [rows] = await executeQuery(`
       SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN estado = 'pendiente' THEN 1 ELSE 0 END) as pendiente,

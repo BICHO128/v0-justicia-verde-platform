@@ -6,12 +6,10 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { correo, contrasena } = body
 
-    // Validate required fields
     if (!correo || !contrasena) {
       return NextResponse.json({ error: "Correo y contraseña son requeridos" }, { status: 400 })
     }
 
-    // Authenticate user
     const user = await authenticateUser(correo, contrasena)
 
     if (!user) {
@@ -26,7 +24,7 @@ export async function POST(request: Request) {
       { status: 200 },
     )
   } catch (error) {
-    console.error("[v0] Login error:", error)
+    console.error("Login error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

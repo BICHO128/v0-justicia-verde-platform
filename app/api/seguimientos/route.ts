@@ -10,10 +10,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "ID de denuncia requerido" }, { status: 400 })
     }
 
-    const seguimientos = await getSeguimientos(Number.parseInt(denunciaId))
+    const id = Number.parseInt(denunciaId)
+    if (isNaN(id)) {
+      return NextResponse.json({ error: "ID de denuncia inválido" }, { status: 400 })
+    }
+
+    const seguimientos = await getSeguimientos(id)
     return NextResponse.json({ seguimientos }, { status: 200 })
   } catch (error) {
-    console.error("[v0] Get seguimientos error:", error)
+    console.error("Get seguimientos error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
@@ -23,9 +28,12 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { id_denuncia, id_usuario, comentario } = body
 
-    // Validate required fields
     if (!id_denuncia || !id_usuario || !comentario) {
       return NextResponse.json({ error: "Campos requeridos faltantes" }, { status: 400 })
+    }
+
+    if (comentario.trim().length === 0) {
+      return NextResponse.json({ error: "El comentario no puede estar vacío" }, { status: 400 })
     }
 
     const success = await addSeguimiento(id_denuncia, id_usuario, comentario)
@@ -36,7 +44,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Seguimiento agregado exitosamente" }, { status: 201 })
   } catch (error) {
-    console.error("[v0] Add seguimiento error:", error)
+    console.error("Add seguimiento error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

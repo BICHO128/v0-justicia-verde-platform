@@ -6,7 +6,7 @@ export async function GET() {
     const categorias = await getCategorias()
     return NextResponse.json({ categorias }, { status: 200 })
   } catch (error) {
-    console.error("[v0] Get categories error:", error)
+    console.error("Get categories error:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
